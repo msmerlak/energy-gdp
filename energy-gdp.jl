@@ -1,7 +1,7 @@
 using DrWatson; @quickactivate
 using CSV, DataFrames, DataFramesMeta
 using StatsPlots
-gr(label = false, dpi = 500)
+gr(label = false, dpi = 200)
 using StatsBase, LinearRegression, Measurements
 using Countries
 
@@ -46,29 +46,28 @@ add_fit!()
 savefig(plotsdir("energy-gdp"))
 
 
-@df @subset(country_data, :gdp ./ :population .> 5e4) scatter(
+@df @subset(country_data, :gdp .> 1e11) scatter(
     log10.(:gdp),
     :energy_per_gdp,
     group = :iso_code,
     marker_z = :year,
     label = false,
     xlabel = "log GDP",
-    ylabel = "Energy per GDP",
-    ylims = (0, 10)
+    ylabel = "Energy per GDP"
 )
-hline!([1.], lw = 3, color = :black, ls = :dash, label = "1 kWh/USD")
+savefig(plotsdir("energy-intensity-vs-gdp"))
 
-@df @subset(country_data, :gdp .> 1e11) plot(
+@df @subset(country_data, :gdp .> 1e12) plot(
     :year,
     :energy_per_gdp,
     group = :country,
-    ylabel = "Energy per GDP",
+    ylabel = "Energy per GDP (kWh/USD)",
     lw = 2,
     markers = :auto,
     markersize = 1,
     legend = :topleft,
-    label = false
 )
+savefig(plotsdir("energy-intensity-vs-time"))
 
 @df @combine(groupby(country_data, :year),
     :mean_energy_per_gdp = sum(:population .* :energy_per_gdp) ./ sum(:population)
@@ -76,13 +75,6 @@ hline!([1.], lw = 3, color = :black, ls = :dash, label = "1 kWh/USD")
     markers = :auto
 )
 
-@df @subset(data, :country .== "World") plot!(
-    :year,
-    :energy_per_capita,
-    lw = 2,
-    markers = :auto,
-    label = false
-)
 
 # energy vs gdp (per capita)
 gdp = @df country_data scatter(
